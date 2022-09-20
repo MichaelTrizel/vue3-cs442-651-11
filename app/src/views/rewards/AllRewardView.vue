@@ -1,23 +1,35 @@
 <script>
-import axios from 'axios'
-
+import RewardCard from '@/components/rewards/RewardCard.vue'
 export default{
     data() {
         return {
             title: "Rewards",
             selected: null,
-            rewards: null
+            rewards: null,
+            error: null
         }
+    },
+    components: {
+        RewardCard
     },
     methods: {
         selectReward(reward) {
             console.table(reward)
+            this.$router.push(`rewards/${reward.id}`)
         }
     },
     async mounted() {
-        const url = "http://localhost/api/rewards"
-        const response = await axios.get(url)
-        this.rewards = response.data.data
+        try {
+            const response = await this.$axios.get("/rewards")
+            this.rewards = response.data.data
+        } catch(error) {
+            console.log(error)
+            this.error = error.message
+        }
+        
+
+        //const response = await axios.get(url)
+        //this.rewards = response.data.data
         // Non-Blocking I/O
         // Asynchronous Language
             // Callback -> Callback Hell Loop
@@ -37,19 +49,19 @@ export default{
     <div class="mx-8">
         <h1 class="text-3xl text-yellow-700">{{ title }}</h1>
 
-        <div v-for="reward in rewards" 
-             :key="reward.id"
-             class="block p-2 mt-4 border-2 border-blue-700 rounded"
-        >
-            <h3 class="text-xl">{{ reward.name }}</h3>
-            <p>{{ reward.point }}</p>
-            <button class="p-2 border border-blue-200 bg-blue-200 rounded"
-                    @click="selectReward(reward)"
-            >
-                Redeem
-            </button>
+        <div v-if="error != null">
+            {{ error }}
         </div>
 
+        <reward-card v-for="reward in rewards" :key="reward.id" 
+                                               :reward="{ ...reward }" 
+                                               :url="`rewards/${reward.id}`">
+            {{ reward.detail }}
+            <template #total_amount>
+                จำนวนจำกัด {{ reward.total_amount }} สิทธิ์
+            </template>
+        </reward-card>
+        
         {{ selected }}
     </div>
 </template>
